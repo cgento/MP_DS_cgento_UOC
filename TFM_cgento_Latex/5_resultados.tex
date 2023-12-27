@@ -1,29 +1,57 @@
-\chapter{Resultados y posibles próximos pasos}
+\chapter{Resultados}
 \label{chapter:resultados}
 
-Este capítulo está compuesto por dos secciones. En la primera sección se muestran varios resultados y patrones observados durante el análisis explotarorio de los datos de la EFF, y cómo algunos de ellos han influido en la toma de decisiones con respecto a las variables que finalmente han entrado en los modelos. Finalmente, en la segunda sección se comentan los resultados de la evaluación de los diferentes modelos de machine learning utilizados durante este estudio.
+\section{Análisis exploratorio de los datos}
 
-Antes de empezar con los resultados, es importante destacar la gran cantidad de variables e información que se recoge en la EFF. En el Cuadro 4.1 se recoge el número de registros y variables disponibles en cada uno de los ficheros utilizados, después de seleccionar sólo a los hogares elegibles para la EFF2020 y a los entrevistadores que participaron en la EFF2017. El número de hogares elegibles para la EFF2020 es de 5.938, el número de entrevistadores en 69 y el número de pantallas que se vieron en el CAPI durante todas las entrevistas es 2.578.926\footnote{Los registros del fichero de paradata son las pantallas del ordenador con las que interactúa el entrevistador durante la entrevista. Suele haber una pregunta por pantalla, y cuando se responde, se pasa a la siguiente pantalla. Cuantas más preguntas, más pantallas se ven.}.
+El objetivo del análisis exploratorio de datos es investigar las características de los datos que se van a utilizar. Por un lado se observan las características particulares de cada variable, y por otro las relaciones que existan entre ellas. Esta información es importante porque ayuda a identificar y tratar rasgos de las variables que pueden afectar a los modelos de machine learning que se quieren entrenar.
 
-\begin{table}[h]
+Como veremos a continuación, en este proyecto se ha manejado una gran cantidad de datos de gran diversidad de origen y formato. El análisis exploratorio de toda esa información es muy amplio y no es posible incluir todo en esta sección. Por esa razón, sólo se muestran resultados que son de interés para el análisis del panel attrition, o resultados que han ayudado a la toma de decisiones para la selección o transformaciones de variables.
+
+\subsection*{Número de registros y variables}
+
+El Cuadro \ref{table:registers} contiene el número de registros y variables disponibles en cada uno de los ficheros utilizados en este proyecto. Se utilizan ficheros de las olas de la EFF2017, EFF2020 y EFF2022\footnote{De la EFF2022 sólo se utiliza el fichero de contactos ya que es el que contiene la información sobre la participación de los hogares panel.}. Estos números contienen todos registros y variables que se han recogido durante la producción de datos de la EFF, y por tanto incluyen a hogares que no son objeto de este estudio, como por ejemplo hogares que nunca han llegado a participar en la EFF u hogares que han participado por primera vez en la EFF2022. Tras realizar el filtrado de hogares elegibles para el estudio (panelistas de 2017 y 2020 que pueden volver a participar en la respectiva ola siguiente), obtenemos que los hogares elegibles para la EFF2020 son 5,937\footnote{Originalmente se identificaron 5938 hogares de la EFF2017 elegibles para la EFF2020. Pero se detectó que uno de esos hogares no tenía registros en el fichero de paradata, y se decidió eliminarlo del conjunto final de datos.} y los hogares elegibles para la EFF2022 son 5,505. Con respecto a los entrevistadores, en la EFF2017 participaron 69 entrevistadores. En la EFF2020 participaron 65 entrevistadores, de los cuales 25 también participaron en la EFF2017.
+
+\begin{table}[ht]
+\centering{}
+\begin{tabular}{lcccc}
+\cline{2-5}
+                            & \multicolumn{2}{c}{\textbf{EFF2017}}        & \multicolumn{2}{c}{\textbf{EFF2020}}        \\ \cline{2-5} 
+\textbf{Nombre del fichero} & \textbf{Registros}   & \textbf{Variables}   & \textbf{Registros}   & \textbf{Variables}   \\ \hline
+Fichero de trabajo          & 6,413                & 6,103                & 6,313                & 6,497                \\
+Fichero de datos imputados  & 6,413                & 659                  & 6,313                & 787                  \\
+Fichero de contactos        & 14,456               & 640                  & 15,457               & 636                  \\
+Fichero de revisión      & 44,760               & 22                   & 35,217               & 51                   \\
+Fichero paradata            & 2,807,091            & 13                   & 3,121,437            & 12                   \\ \hline
+                            & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} \\
+                            & \multicolumn{4}{c}{\textbf{EFF2022}}                                                      \\ \cline{2-5} 
+\textbf{}                   & \multicolumn{2}{c}{\textbf{Registros}}      & \multicolumn{2}{c}{\textbf{Variables}}      \\ \cline{2-5} 
+Fichero de contactos        & \multicolumn{2}{c}{15,182}                  & \multicolumn{2}{c}{636}                     \\ \hline
+                            & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} \\
+\multicolumn{5}{c}{\textbf{Censo de entrevistadores}}                                                                   \\ \hline
+\multicolumn{2}{c}{\textbf{Registros}}             & \multicolumn{3}{c}{\textbf{Variables}}                             \\ \hline
+\multicolumn{2}{c}{260}                            & \multicolumn{3}{c}{56}                                             \\ \hline
+\end{tabular}
+\caption{\textit{Número de registros y variables de los ficheros de datos}}
+\label{table:registers}
+\end{table}
+
+Con respecto al número de variables, el cuadro \ref{table:registers} puede observarse que hay ficheros que tienen más de 6,000 variables. Sin embargo, la inmensa mayoría de estas variables almacenan las respuestas a las preguntas del cuestionario. La gran mayoría de las preguntas sólo se plantean si el hogar posee ciertos activos o si está formado por varios miembros. Esto hace que la mayoría de preguntas no tengan datos para todos los hogares, por lo que es posible seleccionar sólo aquellas que sí tengan datos. Esto reduce considerablemente el número de variables para manejar. Por otro lado, muchas de estas variables en su estado original no son informativas y necesitan ser combinadas con otras para poder obtener información interpretable, lo cual también reduce el número de variables a utilizar. También hay variables que están almacenadas en varios ficheros de datos. Por ejemplo, todas las variables que aparecen en el fichero de datos imputados también aparecen en el fichero de trabajo, por lo que también es posible eliminar variables duplicadas. Del fichero de datos imputados se usan las variables con los valores missing imputados, y el fichero de seleccionan los indicadores de calidad de los datos, indicadores de no-respuesta y otras variables de interés que no aparecen en el fichero de datos imputados. Finalmente, para que los modelos de predicción pudieran aplicarse tanto para datos de la EFF2017 como para la EFF2020, sólo se seleccionaron las variables que estaban disponibles en ambas olas. Esto implicó dedicar bastante tiempo a revisar la codificación de cada variable seleccionada, y homogeneizarlas.
+
+\subsection*{Variable target: \textit{Attrition}}
+
+En el cuadro 3.1 puede observarse que, en las olas de 2020 y 2022, la mayoría de los hogares panel volvieron a participar. Es importante destacar que, aunque en la EFF2020 parezca que existe sólo un ligero desbalance entre las observaciones de cada clase de Attrition, durante los primeros entrenamientos y evaluaciones de los modelos se comprobó que las predicciones se asignaban masivamente a la clase mayoritaria ($Attrition=0$). Para evitar esto, y dado el tamaño limitado de la muestra, previo al entrenamiento se procede al balanceo de la clase Attrition realizando un sobre-muestreo de dicha clase usando el algoritmo SMOTE (Syntetic Monirity Over-sampling Technique, \cite{chawla2002smote}).
+
+\begin{table}[ht]
     \centering{}
     \begin{tabular}{ | l | c | c |}
     \hline
-    Nombre del fichero & Registros & Variables \\ \hline
-    Fichero de trabajo & 5.938 & 6.103 \\
-    Fichero de datos imputados  & 5.938 & 659 \\
-    Fichero de recontactos  & 5.938 & 4 \\
-    Fichero de contactos  & 5.938 & 636 \\
-    Censo de entrevistadores  & 69 & 56 \\
-    Fichero paradata  & 2.578.926 & 13 \\
+    Attrition & EFF2020 & EFF2022 \\ \hline
+    Participa & 3830 & 3974 \\ \hline
+    No participa  & 2107 & 1531 \\
     \hline
     \end{tabular}
-    \caption{\textit{Observaciones y variables de los ficheros de la EFF2017}}
+    \caption{\textit{Distribución de Attrition en EFF2020 y EFF2022}}
 \end{table}
-
-Con respecto al número de variables, muchas de ellas en su estado original no son informativas y necesitan ser combinadas con otras para poder obtener información interpretable. Esto reduce considerablemente el número de variables que hay que manejar. Otro grupo importante de variables tienen pocos registros porque se refieren por ejemplo inversiones en activos financieros que sólo tienen unos pocos hogares, y muchas de ellas se descartan, o se adaptan para indicar tenencia de dichos activos. Finalmente, todas las variables que aparecen en el fichero de datos imputados también aparecen en el fichero de trabajo\footnote{El fichero de trabajo es el que recoge todas las correcciones de la revisión y es el que se utiliza para imputar los valores que están missing porque los hogares no los han declarado. Por tanto, la diferencia en las variables que ambos comparten es que en el fichero de datos imputados esas variables están completas porque sus valores missing se han imputado.}. Del fichero de datos imputados se usan las variables con los valores missing imputados, y el fichero de trabajo se utiliza para obtener indicadores de calidad de los datos, indicadores de no-respuesta y otras variables de interés que no aparecen en el fichero de datos imputados.
-
-\section{Análisis exploratorio}
 
 El análisis exploratorio de las variables es fundamental para poder ver cómo son las distribuciones de las variables que se van a utilizar, las relaciones que hay entre ellas, y especialmente la que hay con la variable de interés. También ayuda a detectar posibles errores o particularidades que puedan afectar a los modelos de predicción. Dada la enorme cantidad de variables que se han analizado en este proyecto, en este apartado sólo se presentan algunos resultados que han llamado bastante la atención y se considera que merecen la pena ser nombrados porque ofrecen conocimiento sobre la participación de los panelistas en futuras olas y que podría ser útil en la práctica.
 
