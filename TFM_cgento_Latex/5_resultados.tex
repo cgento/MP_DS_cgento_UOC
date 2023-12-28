@@ -3,7 +3,7 @@
 
 \section{Análisis exploratorio de los datos}
 
-El objetivo del análisis exploratorio de datos es investigar las características de los datos que se van a utilizar. Por un lado se observan las características particulares de cada variable, y por otro las relaciones que existan entre ellas, y de manera especial la que tienen con la variable Attrition. Esta información es importante porque ayuda a identificar y tratar rasgos de las variables que pueden afectar a los modelos de machine learning que se quieren entrenar.
+El objetivo del análisis exploratorio de datos es investigar las características de los datos que se van a utilizar. Por un lado, se observan las características particulares de cada variable, y por otro las relaciones que existan entre ellas, y de manera especial la que tienen con la variable Attrition. Esta información es importante porque ayuda a identificar y tratar rasgos de las variables que pueden afectar a los modelos de machine learning que se quieren entrenar.
 
 Como veremos a continuación, en este proyecto se ha manejado una gran cantidad de datos de gran diversidad de origen y formato. El análisis exploratorio de toda esa información es muy amplio y no es posible incluir todo en esta sección. Por esa razón, sólo se muestran resultados que son de interés para el análisis del panel attrition, o resultados que han ayudado a la toma de decisiones para la selección o transformación de variables para los modelos de predicción.
 
@@ -45,16 +45,42 @@ Finalmente, para que los modelos de predicción puedan aplicarse tanto para dato
 
 Tras realizar el descarte de variables por las cuatro razones que se acaban de describir, y las comprobaciones y análisis que se vieron durante el análisis exploratorio de los datos, se obtiene la lista de variables que se vio anteriormente en el Cuadro  \ref{table:vars}.
 
-\subsection*{Variables categóricas}
+\subsection*{Paradata y recelo del hogar}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{figs/figure1.png}
+	\caption{Paradata y nivel de recelo del hogar}
+	\label{fig:fig1}
+\end{figure}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{figs/figure4.png}
+	\caption{Duración por sección del cuestionario}
+	\label{fig:fig4}
+\end{figure}
+
+\subsection*{Características y comportamiento de PR}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{figs/figure2.png}
+	\caption{Características y actitudes del PR}
+	\label{fig:fig2}
+\end{figure}
+
+\subsection*{Características hogar}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\textwidth]{figs/figure3.png}
+	\caption{Características del hogar}
+	\label{fig:fig3}
+\end{figure}
 
 En la figura 4.1 presenta cuatro gráficos de mekko que presentan las propociones de hogares panel que vuelven a participar (región azul) frente a los que no vuelven a hacerlo (región roja) para las variables de número de olas en las que se ha participado (arriba a la izquierda), el nivel de recelo después de la entrevista (arriba a la derecha), el estado de salud reportado por la PR (abajo a la izquerda) y la edad de la PR (abajo a la derecha).
 
-\begin{figure}
-	\centering
-	\includegraphics[width=1\textwidth]{figs/categorical.png}
-	\caption{Categorical}
-	\label{fig:categorical}
-\end{figure}
 
 En la figura puede observarse que la proporción de abandono de los hogares que han participado sólo una ola es mayor que la de los que han participado en más de una. Este resultado sugiere que los hogares que llevan menos tiempo en la encuesta podrían ser más complicados de retener, y que podría ser interesante hacer un análisis enfocado en este tipo de hogares.
 
@@ -65,21 +91,6 @@ Finalmente, los dos gráficos de la parte de inferior hacen referencia a caracte
 Finalmente, el último gráfico muestra el nivel de interés que mostró la PR durante la entrevista durante la edición anterior. Se observa que la proporción de hogares que vuelven a participar es mayor cuanto mayor es el interés que mostraron durante la ola anterior. De nuevo, se trata de un resultado obvio. Pero, al igual que con el nivel de recelo, este podría ser un dato que podría ser muy útil para el entrevistador cuando esté preparando su estategia de contacto con el hogar.
 
 \section{Evaluación de modelos}
-
-Para la selección de las variables que han entrenado los modelos se han seguido X criterios. En primer lugar, se han seleccionado variables que aparecen en las implementaciones de \cite{kern2021predicting} y \cite{beste2023case} en sus modelos de machine learning. En segundo lugar, se han seleccionado variables sobre factores mencionados en la revisión de \cite{lynn2018tackling} y que han mostrado potencial para predecir la no participación de hogares panel, como por ejemplo la duración o información sobre los contactos con los hogares. En tercer lugar, se han seleccionado variables específicas que se recogen en la EFF, como la tenencia de activos, deudas o el recelo de los hogares percibido por los entrevistadores. Finalmente, tras seleccionar todas las variables anteriores, se han realizado diversos tests gráficos y estadísticos para detectar variables con correlaciones o dependencias muy altas, y se han descartado. La selección final de variables es la que aparece en el cuadro 4.2.
-
-\begin{table}
-    \centering
-    \begin{tabular}{|l|p{10cm}|}
-    \hline
-        \textbf{Fuente de información} & \textbf{Variables} \\ \hline
-        Características del hogar & Número de adultos que trabajan, Número de adultos jubilados, Propietario vivienda principal, Tamaño del hogar, Tiene otras propiedades, Tiene joyas, Posee negocios, Posee cuentas para pagos, Posee acciones que cotizan, Posee acciones que no cotizan, Posee renta fija, Posee fondos de inversión, Posee cuentas para no pagos, Posee planes de pensiones, Les deben dinero, Poseen vehículos, Percentil de renta, Percentil de riqueza Bruta, Pareja vive en el hogar, Poseen otros activos financieros, Tienen deuda, Tienen ingresos de activos, Hijos viven en el hogar, Nivel de satisfacción con la vida \\ \hline
-        Características PR & Nivel de satisfacción con la vida, PR es panel, PR - nivel educativo, PR- Edad, PR - Casada, PR - Viuda, PR - Sexo, Situación laboral - Asalariado, Situación laboral - Jubilado, Situación laboral - Inactivo, PR - Estado de salud \\ \hline
-        Valoraciones FI & Recelo tras la entrevista, Tipo de edificio - Unifamiliar, Barreras - portero automático, Barreras - No hay barreras, Entendimiento de las preguntas PR, Interés PR, Razones colaborar - Interesado en estos estudios, Razones para colaborar - Lo lleva el BdE, Razones para colaborar - Relevancia de la encuesta, Razones - Favor al entrevistador, Razones - Dar su opinión, Razones - Otras \\ \hline
-        Paradata & PR consiente grabar la entrevista, Hogar con recontacto exitoso, Número de olas en las que se ha participado, Tamaño del municipio, Entrevista con proxy, Número de miembros del hogar que participan, Ratio estricto, Ratio amplio, Número de variables con valores missing, Duración de la entrevista \\ \hline
-    \end{tabular}
-    \caption{Selección de variables para entrenar los modelos de predicción}
-\end{table}
 
 El cuadro 4.3 contiene los resultados del rendimiento de los modelos entrenados sobre el conjunto de test, es decir, los resultados para predecir la no participación de los panelistas en la EFF2022. Las métricas de evaluación que se utilizan son Accuracy, Precision, Recall, F1 y ROC AUC. La métrica de referencia que utilizamos para la evaluación es la ROC AUC, que se encuentra en la parte derecha del cuadro. Esta métrica mide el rendimiento entre la tasa de falsos positivos y falsos negativos. Toma valores de 0.5 a 1, con 1 siendo un predictor perfecto, y 0.5 el que se obtendría con una estimación realizada de manera aleatoria.
 
