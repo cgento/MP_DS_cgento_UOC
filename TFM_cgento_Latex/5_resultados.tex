@@ -3,9 +3,9 @@
 
 \section{Análisis exploratorio de los datos}
 
-El objetivo del análisis exploratorio de datos es investigar las características de los datos que se van a utilizar. Por un lado se observan las características particulares de cada variable, y por otro las relaciones que existan entre ellas. Esta información es importante porque ayuda a identificar y tratar rasgos de las variables que pueden afectar a los modelos de machine learning que se quieren entrenar.
+El objetivo del análisis exploratorio de datos es investigar las características de los datos que se van a utilizar. Por un lado se observan las características particulares de cada variable, y por otro las relaciones que existan entre ellas, y de manera especial la que tienen con la variable Attrition. Esta información es importante porque ayuda a identificar y tratar rasgos de las variables que pueden afectar a los modelos de machine learning que se quieren entrenar.
 
-Como veremos a continuación, en este proyecto se ha manejado una gran cantidad de datos de gran diversidad de origen y formato. El análisis exploratorio de toda esa información es muy amplio y no es posible incluir todo en esta sección. Por esa razón, sólo se muestran resultados que son de interés para el análisis del panel attrition, o resultados que han ayudado a la toma de decisiones para la selección o transformaciones de variables.
+Como veremos a continuación, en este proyecto se ha manejado una gran cantidad de datos de gran diversidad de origen y formato. El análisis exploratorio de toda esa información es muy amplio y no es posible incluir todo en esta sección. Por esa razón, sólo se muestran resultados que son de interés para el análisis del panel attrition, o resultados que han ayudado a la toma de decisiones para la selección o transformación de variables para los modelos de predicción.
 
 \subsection*{Número de registros y variables}
 
@@ -35,25 +35,17 @@ Fichero de contactos        & \multicolumn{2}{c}{15,182}                  & \mul
 \label{table:registers}
 \end{table}
 
-Con respecto al número de variables, el cuadro \ref{table:registers} puede observarse que hay ficheros que tienen más de 6,000 variables. Sin embargo, la inmensa mayoría de estas variables almacenan las respuestas a las preguntas del cuestionario. La gran mayoría de las preguntas sólo se plantean si el hogar posee ciertos activos o si está formado por varios miembros. Esto hace que la mayoría de preguntas no tengan datos para todos los hogares, por lo que es posible seleccionar sólo aquellas que sí tengan datos. Esto reduce considerablemente el número de variables para manejar. Por otro lado, muchas de estas variables en su estado original no son informativas y necesitan ser combinadas con otras para poder obtener información interpretable, lo cual también reduce el número de variables a utilizar. También hay variables que están almacenadas en varios ficheros de datos. Por ejemplo, todas las variables que aparecen en el fichero de datos imputados también aparecen en el fichero de trabajo, por lo que también es posible eliminar variables duplicadas. Del fichero de datos imputados se usan las variables con los valores missing imputados, y el fichero de seleccionan los indicadores de calidad de los datos, indicadores de no-respuesta y otras variables de interés que no aparecen en el fichero de datos imputados. Finalmente, para que los modelos de predicción pudieran aplicarse tanto para datos de la EFF2017 como para la EFF2020, sólo se seleccionaron las variables que estaban disponibles en ambas olas. Esto implicó dedicar bastante tiempo a revisar la codificación de cada variable seleccionada, y homogeneizarlas.
+Con respecto al número de variables, en el cuadro \ref{table:registers} puede observarse que hay ficheros que tienen más de 6,000 variables. Sin embargo, es posible reducir drásticamente el número de variables a manejar por cuatro razones. La primera es que la inmensa mayoría de variables almacenan las respuestas a preguntas del cuestionario principal de la EFF. El número de preguntas que se formulan depende del número de miembros del hogar, sus edades y los activos y deudas que posea el hogar. En la EFF2017 a cada hogar se le plantearon entre 137 y 594 preguntas, siendo la mediana de 259 preguntas (\cite{effmethod2017}). Para entrenar los modelos de predicción se necesitan variables que tengan datos para todos los hogares, por lo que la gran mayoría de variables se descartan.
 
-\subsection*{Variable target: \textit{Attrition}}
+La segunda razón para descartar variables es que muchas no son informativas en su estado original y necesitan ser combinadas con otras para poder obtener información interpretable, o se utilizan como apoyo para la imputación. Por ejemplo, para preguntar cantidades monetarias se utiliza una herramienta llamada Euroloop, que permite a los hogares dar valores en intervalos por si no quieren o no pueden dar un valor puntual (\cite{effmethod2017}). Las respuestas se almacenan en cuatro variables que posteriormente se utilizan en la imputación para estimar valores puntuales dentro del rango declarado por el hogar.
 
-En el cuadro 3.1 puede observarse que, en las olas de 2020 y 2022, la mayoría de los hogares panel volvieron a participar. Es importante destacar que, aunque en la EFF2020 parezca que existe sólo un ligero desbalance entre las observaciones de cada clase de Attrition, durante los primeros entrenamientos y evaluaciones de los modelos se comprobó que las predicciones se asignaban masivamente a la clase mayoritaria ($Attrition=0$). Para evitar esto, y dado el tamaño limitado de la muestra, previo al entrenamiento se procede al balanceo de la clase Attrition realizando un sobre-muestreo de dicha clase usando el algoritmo SMOTE (Syntetic Monirity Over-sampling Technique, \cite{chawla2002smote}).
+En tercer lugar, hay variables que están almacenadas en varios ficheros de datos, por lo que sólo es necesario extraerlas de uno de los ficheros y evitar duplicidades. Por ejemplo, todas las variables que aparecen en el fichero de datos imputados también aparecen en el fichero de trabajo, por lo que se sólo hace extraerlas de uno de los dos. Del fichero de trabajo se extraen indicadores de no-respuesta y otras variables de interés que no aparecen en el fichero de datos imputados, y de éste úñtimo se extraen las variables con los valores missing imputados.
 
-\begin{table}[ht]
-    \centering{}
-    \begin{tabular}{ | l | c | c |}
-    \hline
-    Attrition & EFF2020 & EFF2022 \\ \hline
-    Participa & 3830 & 3974 \\ \hline
-    No participa  & 2107 & 1531 \\
-    \hline
-    \end{tabular}
-    \caption{\textit{Distribución de Attrition en EFF2020 y EFF2022}}
-\end{table}
+Finalmente, para que los modelos de predicción puedan aplicarse tanto para datos de la EFF2017 como para la EFF2020, sólo se seleccionan las variables que estaban disponibles en ambas olas. Esta tarea ha requerido una gran dedicación de esfuerzo y tiempo, ya que en algunos ficheros se detectaron variables que no mantuvieron su nomeclatura, el tipo de dato almacenado o la codificación de los datos entre diferentes olas. Para asegurar la homogeneidad, se ha revisado de manera individualizada la nomenclatura y la codificación de cada variable para ambas ediciones de la EFF.
 
-El análisis exploratorio de las variables es fundamental para poder ver cómo son las distribuciones de las variables que se van a utilizar, las relaciones que hay entre ellas, y especialmente la que hay con la variable de interés. También ayuda a detectar posibles errores o particularidades que puedan afectar a los modelos de predicción. Dada la enorme cantidad de variables que se han analizado en este proyecto, en este apartado sólo se presentan algunos resultados que han llamado bastante la atención y se considera que merecen la pena ser nombrados porque ofrecen conocimiento sobre la participación de los panelistas en futuras olas y que podría ser útil en la práctica.
+Tras realizar el descarte de variables por las cuatro razones que se acaban de describir, y las comprobaciones y análisis que se vieron durante el análisis exploratorio de los datos, se obtiene la lista de variables que se vio anteriormente en el Cuadro  \ref{table:vars}.
+
+\subsection*{Variables categóricas}
 
 En la figura 4.1 presenta cuatro gráficos de mekko que presentan las propociones de hogares panel que vuelven a participar (región azul) frente a los que no vuelven a hacerlo (región roja) para las variables de número de olas en las que se ha participado (arriba a la izquierda), el nivel de recelo después de la entrevista (arriba a la derecha), el estado de salud reportado por la PR (abajo a la izquerda) y la edad de la PR (abajo a la derecha).
 
