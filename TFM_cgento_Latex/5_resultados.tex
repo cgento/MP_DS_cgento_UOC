@@ -164,13 +164,11 @@ Una posible causa puede ser el overfitting, es decir, que los modelos han aprend
     \label{table:train}
 \end{table}
 
-Como era de esperar, las métricas del rendimiento de las predicciones de todos los modelos sobre los datos de entrenamiento son mejores que los obtenidos en el ejercicio de test. En este caso, el modelo que presenta mejor rendimiento es el Random Forest, con una métrica de ROC AUC de 0,6726, ligeramente superior a la del XGBooster. El resto de métricas del Ranfom Forest también son ligeramente mejores que las del XGBooster. Sin embargo, esta métrica de ROC AUC está entre 0,6 y 0,75, que lo clasifica como un predictor regular.
+Como era de esperar, las métricas del rendimiento de las predicciones de todos los modelos sobre los datos de entrenamiento son mejores que los obtenidos en el ejercicio de test. En este caso, el modelo que presenta mejor rendimiento es el Random Forest, con una métrica de ROC AUC de 0,6726, ligeramente superior a la del XGBooster. El resto de métricas del Ranfom Forest también son ligeramente mejores que las del XGBooster. Sin embargo, esta métrica de ROC AUC está entre 0,6 y 0,75, que lo clasifica como un predictor regular. Este resultado descarta que el overfitting para explicar el mal rendimiento de los modelos, e invita a considerar otras alternativas e incluso nuevos enfoques. Estas opciones se comentan con más detalle en el capítulo \ref{chapter:conclusiones}.
 
-Estos resultados indican que el overfitting no parece ser una razón por la que los modelos no predicen bien el panel attrition en la EFF. En este punto, las explicaciones 
+\subsection*{Importancia de las variables en la predicción}
 
-\subsection*{Importancia de los predictores en la predicción}
-
-Tal y como se comentó en la sección \ref{section:method}, una ventaja de los modelos basados en árboles de decisión es que pueden ser interpretados. En el caso del Radom Forest, es posible consultar qué variables han tenido más peso a la hora de clasificar la participación de los hogares. Aunque los resultados de la predicción del training no sean buenos, merece la pena echarle un ojo por los patrones que haya podido detectar. El cuadro \ref{table:importance} presenta las 20 variables con más importancia en el modelo de Random Forest.
+Tal y como se comentó en la sección \ref{section:method}, una ventaja de los modelos basados en árboles de decisión es que pueden ser interpretados. En el caso del Radom Forest, es posible consultar qué variables han tenido más peso a la hora de clasificar la participación de los hogares. Aunque los resultados de la predicción del training no sean buenos, merece la pena echarle un ojo por los patrones que haya podido detectar. El cuadro \ref{table:importance} presenta las 20 variables con más importancia en el modelo de Random Forest ordenadas por valor de importancia.
 
 \begin{table}[ht]
     \centering
