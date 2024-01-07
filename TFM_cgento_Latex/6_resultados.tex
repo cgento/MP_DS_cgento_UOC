@@ -1,0 +1,95 @@
+\chapter{Resultados}
+\label{chapter:resultados}
+
+\section{Evaluación de modelos}
+\label{section:evaluation_models}
+
+\subsection*{Rendimiento de los modelos sobre el conjunto de test}
+El cuadro \ref{table:test} contiene los resultados de la evaluación de los modelos entrenados con algoritmos de machine learning con respecto al modelo de referencia de Regresión Logística Logit. Recordemos que los modelos se han entrenado con datos de la EFF2017 para predecir la no participación de los hogares panelistas en la EFF2020. El ejercicio del test consistía en predecir la participación de los hogares panel en la ola EFF2022 utilizando información de la EFF2020.
+
+Las métricas de evaluación que se utilizan son Accuracy, Precision, Recall, F1 y ROC AUC. La métrica de referencia que utilizada para la evaluación es la ROC AUC, que se encuentra en la parte derecha del cuadro. Esta métrica mide el rendimiento entre la tasa de falsos positivos y falsos negativos. Toma valores de 0.5 a 1, con 1 siendo un predictor perfecto, y 0.5 el que se obtendría con una estimación realizada de manera aleatoria.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{lccccc}
+    \hline
+        \textbf{Modelo} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ROC AUC} \\ \hline
+        Logit & 0,6556 & 0,3749 & 0,3573 & 0,3659 & 0,5959 \\ 
+        CART & 0,6434 & 0,3338 & 0,2835 & 0,3066 & 0,5521 \\ 
+        Random Forest & 0,6489 & 0,3529 & 0,3148 & 0,3328 & 0,5821 \\ 
+        XGBooster & 0,6718 & 0,3772 & 0,2769 & 0,3194 & 0,5911 \\ 
+        Naive Bayes & 0,6254 & 0,3504 & 0,4063 & 0,3763 & 0,5798 \\ \hline
+    \end{tabular}
+    \caption{Métricas de evaluación de los modelos de predicción en el conjunto de test}
+    \label{table:test}
+\end{table}
+
+El modelo de referencia de este estudio, el Logit, presenta una ROC AUC de 0,5959. La del modelo CART es 0,5521, la del Random Forest es 0,5821, la del XGBooster es 0,5911, y la del Naive Bayes es 0,5798. Ninguno de estos valores mejora a la ROC AUC del modelo Logit. Los que se quedan más cerca son el Random Forest y el XGBooster. De todas maneras, es necesario recalcar que el valor más alto de ROC AUC, el del Logit, sigue estando por debajo de 0,6, por lo que resultados de los test son malos.
+
+\section{¿Por qué el rendimiento de los modelos no es bueno?}
+
+Los resultados de la evaluación de los modelos con el conjunto de test indican que hay modelos de machine learning, aunque se quedan cerca, no mejoran en rendimiento de la predicción con respecto a un Logit. Sin embargo, la métrica ROC AUC por el Logit indica que el rendimiento de este modelo es malo. ¿Por qué los modelos no hacen bien la predicción?
+
+Una posible causa podría ser el overfitting, es decir, que los modelos han aprendido demasiado de los datos con los que han sido entrenados y no son capaces de generalizar bien cuando se enfrentan a datos nuevos. Si esta fuese la principal razón, lo esperable sería que su rendimiento fuese bueno si se hace el ejercicio de predicción sobre los datos de entrenamiento. En el cuadro \ref{table:train} se presenta una comparación entre las métricas de entrenamiento del ejercicio de predecir la Attrition con los datos de test y de entrenamiento (Train).
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Modelo} & \multicolumn{1}{l}{\textbf{Datos}} & \multicolumn{1}{l}{\textbf{Accuracy}} & \multicolumn{1}{l}{\textbf{Precision}} & \multicolumn{1}{l}{\textbf{Recall}} & \multicolumn{1}{l}{\textbf{F1}} & \multicolumn{1}{l}{\textbf{ROC AUC}} \\ \hline
+\multirow{2}{*}{Logit} & Test & 0,6556 & 0,3749 & 0,3573 & 0,3659 & 0,5959 \\
+ & Train & 0,6389 & 0,4905 & 0,4518 & 0,4704 & 0,6517 \\ \hline
+\multirow{2}{*}{CART} & Test & 0,6434 & 0,3338 & 0,2835 & 0,3066 & 0,5521 \\
+ & Train & 0,6126 & 0,4594 & 0,5178 & 0,4868 & 0,6188 \\ \hline
+\multirow{2}{*}{Random Forest} & Test & 0,6489 & 0,3529 & 0,3148 & 0,3328 & 0,5821 \\
+ & Train & 0,6596 & 0,5223 & 0,4770 & 0,4986 & 0,6726 \\ \hline
+\multirow{2}{*}{XGBooster} & Test & 0,6718 & 0,3772 & 0,2769 & 0,3194 & 0,5911 \\
+ & Train & 0,6544 & 0,5144 & 0,4675 & 0,4898 & 0,6722 \\ \hline
+\multirow{2}{*}{Naive Bayes} & Test & 0,6254 & 0,3504 & 0,4063 & 0,3763 & 0,5798 \\
+ & Train & 0,6251 & 0,4741 & 0,5178 & 0,4950 & 0,6435 \\ \hline
+\end{tabular}
+\caption{Comparación métricas evaluación entre conjuntos Test y Train}
+\label{table:train}
+\end{table}
+
+En esta tabla hay dos tipos de resultados. En primer lugar, se observa que los resultados del test decaen puntos con respecto al conjunto de entrenamiento. Esta degradación es esperable, ya que los algoritmos han sido entrenados con el conjunto de entrenamiento y conocen los patrones internos de los datos mejor que los del conjunto de testo. La caída del entrenamiento al test es baja cuando se compara la métrica de accuracy, pero la caída es más grande para el resto de métricas. Por ejemplo, la ROC AUC del Random Forest cae de 0,6726 para el conjunto de entrenamiento a 0,5821 para el conjunto de test, y la del Logit cae de 0,6517 para el entremaniento a 0,5959 para el test.
+
+El segundo tipo de resultados se centra en la comparación del rendimiento entre los modelos para el conjunto de entrenamiento. En este caso la ROC AUC de todos los modelos sí supera el valor de 0,6, y también se observa que la de dos de los modelos, el Random Forest y XGBooster, que son 0,6726 y 0,6722 respectivamente, sí son más altas que la ROC AUC del modelo Logit, que es 0,6517. Del resto de métricas, sólo el recall del XGBooster presenta un valor más bajo que el del modelo Logit. De los dos modelos, el mejor sería el Random Forest porque presenta mejores valores en todas las métricas. Sin embargo, aunque este valor sí esté por encima de 0,6, al estar por debajo de 0,75 a este modelo se le clasifica como un predictor regular. Este resultado descarta el overfitting para explicar el mal rendimiento de los modelos, e invita a considerar otras alternativas e incluso nuevos enfoques. Estas opciones se comentan con más detalle en el capítulo \ref{chapter:conclusiones}.
+
+\section{Importancia de las variables para explicar Panel Attrition}
+
+Aunque en los otros dos apartados de este capítulo se ha visto que los modelos de machine learning no han presentado buenos resultados a la hora de predecir el Panel Attrition, puede ser interesante utilizarlos para hacer un ejercicio explicativo en vez de predictivo, e intentar aprender qué información panel puede ser importante para determinar el Attrition. Tal y como se comentó en el capítulo \ref{chapter:metodologia}, una ventaja de los modelos basados en árboles de decisión es que son interpretables, y en concreto los modelos de Random Forest y XGBooster permiten estimar qué variables han tenido más peso a la hora de clasificar la participación de los hogares en la siguiente edición. En este apartado se analizan los resultados del Random Forest, ya que es el que presentó mejores resultados en la predicción utilizando el conjunto de entrenamiento.
+
+El cuadro \ref{table:importance} presenta las 20 variables con más importancia en el modelo de Random Forest ordenadas por valor de importancia.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{lc}
+    \hline
+        \textbf{Variable} & \textbf{Importancia} \\ \hline
+        PR es panel & 0,0822 \\ 
+        Interés PR & 0,0790 \\ 
+        Razones para colaborar - Relevancia de la encuesta & 0,0605 \\ 
+        Proporción de preguntas monetarias respondidas (incluye intervalos) & 0,0594 \\ 
+        Posee al menos un vehículo & 0,0539 \\ 
+        Tiene deudas pendientes & 0,0496 \\ 
+        Situación laboral - Asalariado & 0,0475 \\ 
+        Razones colaborar - Interesado en estos estudios & 0,0380 \\ 
+        Posee planes de pensiones & 0,0353 \\ 
+        PR consiente grabar la entrevista & 0,0348 \\ 
+        Hijos viven en el hogar & 0,0318 \\ 
+        Nivel educativo PR & 0,0313 \\ 
+        Número de olas en las que ha participado el hogar & 0,0304 \\ 
+        Sexo de PR & 0,0291 \\ 
+        Número de adultos con trabajo & 0,0277 \\ 
+        Posee fondos de inversión & 0,0206 \\ 
+        Nivel de comprensión de las preguntas por PR & 0,0206 \\ 
+        Proporción de preguntas monetarias respondidas en valor puntual & 0,0198 \\ 
+        Razones para colaborar - El estudio lo lleva el BdE & 0,0195 \\ 
+        Estado Civil - Casada & 0,0190 \\ \hline
+    \end{tabular}
+    \caption{Importancia de las variables en el modelo de Random Forest}
+    \label{table:importance}
+\end{table}
+
+La importancia de una variable en el Random Forest mide el peso relativo que ha tenido una variable concreta a la hora de crear las ramificaciones de los diferentes árboles de decisiones que va generando el Random Forest durante su entrenamiento. En la participación en la EFF2020, las tres variables que más importancia tuvieron fueron que la PR fuera panel, que la PR mostrase interés durante la entrevista, y que el entrevitador indicase que el hogar colaboró por la relevancia de la encuesta. También es interesante destacar la importancia de proporción de preguntas monetarias respondidas por el hogar (incluyendo intervalos), y algunas variables que hemos mencionado en la sección \ref{section:exploring}, como son si la PR consintió que se grabase la entrevista, el nivel educativo de la PR y el número de olas en las que el hogar ha participado.

@@ -1,0 +1,136 @@
+\chapter{Metodología}
+\label{chapter:metodologia}
+
+Tomando como referencia las estrategias de investigación propuestas en \cite{oates2022researching}, en este proyecto se presenta un 'Caso de estudio'. Se busca tener un conocimiento profundo sobre la participación de los hogares panel en el caso específico de la EFF, y buscar un modelo para predecirla.
+
+La metodología de este proyecto se fundamenta en cuatro pilares. En primer lugar, en la recopilación de los datos de las entrevistas y los entrevistadores que participaron en las olas EFF2017, EFF2020 y EFF2022. El segundo pilar es la realización de un análisis descriptivo de las variables de la EFF y que tienen potencial para explicar el Panel Attrition. En tercer lugar, en el entrenamiento de varios modelos basados en métodos de machine learning con datos de la EFF2017 y la EFF2020, y evaluar su rendimiento para predecir la participación de los hogares panel en la EFF2022. Para realizar este ejercicio, se adapta la implementación hecha en \cite{beste2023case} al caso de la EFF. Finalmente, se realiza una valoración de los resultados obtenidos y qué pasos podrían darse en el futuro para seguir desarrollando este proyecto.
+
+El tratamiento de datos y el análisis descriptivo en este proyecto se ha realizado con lenguaje Python (3.8.8), y los paquetes scikit-learn (1.2.2, \cite{pedregosa2011scikit}), imbalanced-learn (0.10.1, \cite{lemaavztre2017imbalanced}) y xgboost (1.5.2, \cite{chen2016xgboost}) para la construcción de los modelos de machine learning.
+
+El resto de esta sección se divide en tres apartados. Es primer lugar se define la variable a predecir, $Attrition$ y las variables que se van a utilizar como predictores de los modelos. En la segunda sección se da una breve descripción del proceso de recopilación de los datos y las técnicas utilizadas en el análisis exploratorio de los datos. Finalmente, se cierra este capítulo con la descripción de la estrategia de entrenamiento y validación de los modelos de predicción.
+
+\section{Variable \textit{Attrition} y predictores}
+\label{section:attrition_predictors}
+
+El objetivo del estudio es encontrar un modelo para predecir si un hogar que ha participado en la ola $t-1$ de la EFF no volverá a participar en la siguiente ola $t$. Para ello, se define la variable \textit{Attrition} como una variable dicotómica que toma valor 0 si el hogar vuelve a participar, y valor 1 si no vuelve a participar:
+
+\begin{equation}
+Attrition =
+  \begin{cases}
+    0       & \quad \text{el hogar participa en la ola $t$} \\
+    1  & \quad \text{el hogar no participa en la ola $t$}
+  \end{cases}
+\end{equation}
+
+Esta variable no existe en los datos y es necesario crearla. Se hace mediante cuatro pasos. Primero, se recupera la lista de identificadores de los hogares que participaron en la ola $t-1$. A cada hogar que participa en una ola específica de la EFF se le asigna un identificador único para esa ola, y este identificador aparece como variable tanto en los ficheros de la ola $t-1$ como en los ficheros de la ola siguiente $t$. En segundo lugar, se descarta a los hogares que no son elegibles para volver a ser entrevistados en la ola $t$. Tal y como se comenta al final de la sección \ref{section:eff}, se descarta a los que ya han participado en cuatro olas consecutivas. En tercer lugar, si un hogar panel participó en la ola $t$, en el fichero de contactos de la ola $t$ existe un registro que contiene su identificador en $t-1$. Se recupera la lista de identificadores en $t-1$ y el resultado de los contactos. Finalmente, el valor de la variable \textit{Attrition} se crea a partir de los resultados del contacto. Éstos pueden ser 'Completado' (se completó la entrevista), 'Rechazado' (hay intento de contacto, pero no se completa la entrevista), o 'Missing' (no se intentó ningún contacto). Si el resultado es 'Completado', la variable \textit{Attrition} toma valor 0, y en cualquier otro caso (rechazo o missing) toma valor 1.
+
+En el cuadro \ref{table:attrition} se observa el número de registros utilizados para el entrenamiento y validación de los modelos, el número de registros que se van a predecir para evaluar su rendimiento, y la distribución real de la variable $Attrition$ en las olas de 2020 y 2022. Puede observarse que en ambas olas la mayoría de los hogares panel volvieron a participar. Esto provoca un ligero desbalance entre las observaciones de cada clase de $Attrition$, y durante los primeros entrenamientos y evaluaciones de los modelos se comprobó que las predicciones se asignaban masivamente a la clase mayoritaria, en este caso $Attrition=0$.
+
+\begin{table}[htbp]
+\begin{tabular}{lcc}
+ & \textbf{Entrenamiento (EFF2020)} & \textbf{Test (EFF2022)} \\ \hline
+Participa ($Attrition = 0$) & 3830 & 3974 \\
+No participa ($Attrition = 1$) & 2107 & 1531 \\ \hline
+Registros totales & 5937 & 5505
+\end{tabular}
+\caption{Participación de hogares panel en EFF2020 y EFF2022}
+\label{table:attrition}
+\end{table}
+
+Para evitar esto, y dado el tamaño limitado de la muestra, de manera previa al entrenamiento se implementa una técnica de sobre-muestreo sobre la clase $Attrition=1$ para balancear la muestra y obtener el mismo número de instancias de cada clase de $Attrition$. El sobre-muestreo se realiza mediante el algoritmo SMOTE (Syntetic Monirity Over-sampling Technique, \cite{chawla2002smote}), que es un algoritmo que genera nuevas instancias de la clase minoritaria basándose en el algoritmo de vecinos más cercanos.
+
+En el otro lado de los modelos de predicción están las variables que se eligen como predictores. Por definición, estas variables deben contener información conocida y observable antes de que se produzca el fenómeno que se quiere predecir. En ese sentido, para predecir \textit{Attrition} se utilizan como predictores variables que se recogieron durante la ola anterior, la ola $t-1$. La selección final de predictores está compuesta por 57 variables, y pueden consultarse en el cuadro \ref{table:vars}. Esta selección se ha inspirado en los modelos desarrollados \cite{kern2021predicting} y \cite{beste2023case} y, adicionalmente, se han incluido otras variables de interés para la EFF, como por ejemplo si un hogar se ha recontactado durante la revisión o si la entrevista se realizó con un proxy. Para su selección se han tenido en cuenta criterios teóricos y los resultados observados durante el análisis exploratorio de datos que se describe más detalladamente en la sección 
+
+\begin{table}[htbp]
+\centering{}
+\begin{tabular}{l p{10cm}}
+\hline
+\textbf{Fuente de información} & \textbf{Variables} \\ \hline
+Características del hogar & Número de adultos con trabajo, Número de adultos jubilados, Propietario vivienda principal, Tamaño del hogar, Tiene otras propiedades, Tiene joyas, Posee negocios, Posee cuentas para pagos, Posee acciones que cotizan, Posee acciones que no cotizan, Posee renta fija, Posee fondos de inversión, Posee cuentas para no pagos, Posee planes de pensiones, Les deben dinero, Posee al menos un vehículo, Percentil de renta, Percentil de riqueza Bruta, Pareja vive en el hogar, Poseen otros activos financieros, Tiene deudas pendientes, Tiene ingresos de activos, Hijos viven en el hogar, Nivel de satisfacción con la vida \\ \hline
+Características de PR & Nivel de satisfacción con la vida, Es panel, Nivel educativo, Estado de salud, Edad, Estado Civil - Casada, Estado Civil - Viuda, Sexo, Situación laboral - Asalariado, Situación laboral - Jubilado, Situación laboral - Inactivo \\ \hline
+Valoraciones entrevistador & Recelo tras la entrevista, Edificio Unifamiliar, Barreras - portero automático, Barreras - Sin barreras, Nivel de comprensión de las preguntas por PR, Interés de PR, Razones colaborar - Interesado en estos estudios, Razones para colaborar - El estudio lo lleva el BdE, Razones para colaborar - Relevancia de la encuesta, Razones - Favor al entrevistador, Razones - Dar su opinión, Razones - Otras \\ \hline
+Paradata & PR consiente grabar la entrevista, Hogar recontactado, Número de olas en las que se ha participado, Tamaño del municipio, Entrevista con proxy, Número de miembros del hogar que participan en la entrevista, Proporción de preguntas monetarias respondidas en valor puntual, Proporción de preguntas monetarias respondidas (incluye intervalos), Número de variables con valores missing, Duración de la entrevista (en segundos) \\ \hline
+\end{tabular}
+\caption{Selección de variables para entrenar los modelos de predicción}
+\label{table:vars}
+\end{table}
+
+\section{Recopilación de datos y análisis descriptivo}
+
+Como se comenta más adelante en el capítulo \ref{chapter:datos}, en este proyecto se vincula información proveniente de doce ficheros de datos. La vinculación se realiza a través de dos identificadores, uno a nivel de hogar y otro a nivel de entrevistador. El indicador de hogar ya se ha mencionado anteriormente en la sección \ref{section:attrition_predictors}. Cada hogar que participa en una ola concreta de la EFF tiene un identificador único para esa edición, y ese identificador es común para todos los ficheros de datos generados durante esa edición. Esto permite vincular los datos del mismo hogar entre los diferentes ficheros de datos de una edición. Además, si ese hogar es panelista, algunos ficheros de datos de la siguiente edición también incluyen ese identificador único del hogar en la ola anterior. Esto permite vincular la del hogar en ambas ediciones anteriores de la EFF.
+
+Por otro lado, tal y como se comenta en el capítulo \ref{chapter:datos}, la información sobre los entrevistadores está almacenada en un único fichero que contiene un censo de entrevistadores de la EFF. La vinculación entre este fichero y el de hogares se realiza a través de un identificador único que tiene cada entrevistador y que permanece inalterable a lo largo de las olas. Este indicador aparece como una variable adicional en algunos ficheros de datos de cada ola, por lo que es posible identificar a la persona que realizó cada entrevista en cada una de las olas en las que participó, y vincular toda esa información.
+
+Una vez se termina la recopilación de datos se realiza un análisis exploratorio de los mismos para conocerlos mejor. Para este ejercicio de análisis se han realizado tres tipos de tareas:
+
+\begin{enumerate}[noitemsep]
+    \item Exploración de las estructuras de datos de los ficheros. Esto ha permitido identificar los diferentes tipos de registros y la cantidad, tipología y codificación de las variables.
+    \item Análisis de distribuciones individuales de todas las variables mediante cálculos de estadísticos descriptivos y representaciones visuales mediante histogramas y gráficos box-plot para las variables numéricas, y gráficos de columnas para las variables categóricas.
+    \item Análisis de las relaciones entre las variables, y de manera particular con el Panel Attrition. Para analizar la relación entre variables continuas se han utilizado printipalmente gráficos de nubes de puntos y se han calculado los coeficientes de correlación entre cada variable numérica. Las relaciones entre variables categóricas se han realizado mediante el uso de gráficos de columnas, gráficos de mekko y test de independencia chi-cuadrado. Finalmente, la relación entre variables categóricas y numéricas se ha realizado visualmente con histogramas y box-plots de las variables continuas para cada categoría, y un análisis ANOVA en los casos que se cumplían los supuestos para este análisis.
+\end{enumerate}
+
+\section{Modelos de machine learning}
+
+En este proyecto se entrenan cuatro modelos de predicción basados en algoritmos de machine learning, y se compara su rendimiento con un modelo de referencia que se utiliza tradicionalmente para analizar Panel Attrition. Este modelo base es una Regresión Logística o Logit de efectos primarios, es decir, sin interacciones entre variables y sin especificaciones no lineales. Los modelos de machine learning que se entrenan y evalúan son un árbol de decisión (CART, \cite{breiman1984cart}), un Random Forest (\cite{breiman2001random}), un eXtreme Gradient Boosting (XGBooster, \cite{chen2016xgboost}) y un Naive Bayes (\cite{webb2010naive}). La elección de estos modelos se fundamenta, por un lado, en los buenos resultados que han mostrado para predecir Panel Attrition en otras encuestas para hogares (\cite{kern2019tree}, \cite{kern2021predicting}, \cite{beste2023case}) y, por otro lado, en que estos modelos son fácilmente interpretables en comparación con otros algoritmos de machine learning, como pueden ser las Máquinas de Soporte Venctorial (SVM) o las Redes Neuronales. Esta última característica es importante porque facilita información directa sobre las características de los hogares sobre los que implementar diseños adaptativos y reactivos. El cuadro \ref{table:classifiers} contiene una breve descripción de los modelos de clasificación entrenados.
+
+\begin{table}[htbp]
+\centering{}
+\begin{tabular}{l p{10cm}}
+\hline
+\textbf{Algoritmo} & \textbf{Descripción} \\ \hline
+Regresión logística & Modelo de regresión utilizado comúnmente para analizar problemas de clasificación binaria. Estima la probabilidad de respuesta binaria basada en un conjunto de regresores. \\ \hline
+Árbol de decisión (CART) & Modelo de clasificación o regresión que subdivide recursivamente el espacio de datos en regiones disjuntas de tal manera que todos los elementos de una región pertenezcan a la misma clase. \\ \hline
+Random Forest & Modelo de clasificación o regresión basado en la combinación  de árboles de decisión que creados de manera independiente con muestreos aleatorios tanto del conjunto original de datos como de las variables. \\ \hline
+XGBooster & Método de clasificación o regresión en el que se constuye una secuencia de árboles en el que cada modelo repondera los elementos erróneamente clasificados por del modelo anterior para darles más peso. \\ \hline
+Naïve Bayes & Modelo que clasifica asignado la clase que maximiza la probabilidad condicional de dicha clase dados unos atributos. \\ \hline
+\end{tabular}
+\caption{Modelos de clasificación}
+\label{table:classifiers}
+\end{table}
+
+\section{Entrenamiento, validación y evaluación de modelos}
+
+La estrategia de entrenamiento y validación utilizada en este proyecto se inspira en la implementada en \cite{beste2023case}. En ese trabajo se utiliza información de las olas 4 a 12 de una encuesta a hogares para entrenar y validar sus modelos de machine learning, y predicen la participación en la ola 13 para evaluar el rendimiento de dichos modelos. Como predictores utilizan la información de la encuesta inmediatamente anterior, y como información histórica utilizan sólo dos variables: el número total de olas en las que se ha participado y la proporción de olas en las que se ha participado desde que el hogar fue elegido para la muestra\footnote{La encuesta usada en \cite{beste2023case} permite que un hogar que no ha participado en una edición pueda volver a hacerlo en la edición siguiente. Pero esta caraterística no está presente en el diseño de la EFF, por lo que no puede usarse.}. Para la implementación de este proyecto se utiliza la información de la EFF2017 y la participación en EFF2020 para el entrenamiento y la validación de los modelos, y para evaluación se utiliza la información de la EFF2020 para predecir la participación en la EFF2022. La información histórica viene dada por en número de ediciones de la EFF en la que ha participado cada hogar.
+
+Antes del entrenamiento de los modelos se siguen los siguientes pasos de preparación de los datos:
+\begin{enumerate}
+    \item Se revisan los datos en busca de valores faltantes o missing. Este problema se soluciona utilizando el fichero de datos imputados de la EFF. También se elimina un hogar porque no tenía valores en el fichero de paradata.
+    \item Se revisan los datos en busca de valores atípicos. Sólo se encuentran en las variables de duración de la entrevista y se procede a su imputación. Los detalles de esta imputación se describen en la sección \ref{subsection:duration}.
+    \item Las variables categóricas ordinales se recodifican para que tengan valores crecientes que empiecen por valor 1. Las variables categóricas no ordinales se codifican creando variables binarias de valores 0 y 1 para cada categoría de dichas variables (One-Hot encoding).
+\end{enumerate}
+
+Para el entrenamiento y validación de los modelos se sigue una estrategia de k-fold cross-validation para los conjuntos de entrenamiento y validación, con k=5. Para evitar que haya fuga de datos (data leakage) del conjunto de entrenamiento al de validación, los estimadores se obtienen se implementando un Pipeline de scikit-learn con dos pasos: Primero, se realiza el sobremuestreo de la clase minoritaria utilizando el algoritmo SMOTE, y a continuación estandarizan los valores de las variables monetarias.
+
+Con respecto al tuning de hiperparámetros, en la tabla \ref{table:hyperparam} puede consultarse la estrategia de búsqueda de valores de hiperparámetros para cada algoritmo, así como el espacio de valores de hiperparámetros considerados para cada hiperparámetro. Como no existe certeza sobre cuáles son los valores más adecuados, se considera un rango bastante amplio para cada hiperparámetro de cada algoritmo. Con respecto a los algoritmos de búsqueda, se implementa un algoritmo de búsqueda de res (Grid search) para los modelos Logit y CART. Este algoritmo prueba cada combinación de hiperparámetros. Sin embargo, los algoritmos Random Forest y XGBOOST tienen elevados tiempos y costes de ejecución, por lo que se utiliza un algoritmo de búsqueda aleatoria (Random Search) con 2500 iteraciones. Este algoritmo realiza una búsqueda aleatoria de combinaciones de hiperparámetros en lugar de comprobar cada combinación de los mismos. Se ha comprobado que este tipo de búsqueda aleatoria es una alternativa válida en contextos de alta dimensionalidad de hiperparámetros (\cite{bergstra2012random}).
+
+\begin{table}[htbp]
+\centering{}
+\begin{tabular}{lcl}
+\hline
+\textbf{Algoritmo} & \multicolumn{1}{l}{\textbf{Método de búsqueda}} & \textbf{Espacio de hiperparámetros} \\ \hline
+Regresión Logística & Grid & \begin{tabular}[c]{@{}l@{}}C: np.logspace(-1.5,3,10)\\ penalty: l1, l2\end{tabular} \\ \hline
+Árbol de decisión CART & Grid & \begin{tabular}[c]{@{}l@{}}criterion: gini, entropy\\ max\_depth: 2, 4, 8, 16, 32, None\\ min\_samples\_split: 2, 4, 8, 16, 32\\ min\_samples\_leaf: 2, 4, 8, 16, 32, 64\\ max\_features: sqrt, log2\end{tabular} \\ \hline
+Random Forest & Random & \begin{tabular}[c]{@{}l@{}}min\_samples\_leaf: 2, 4, 8, 16, 32, 64\\ n\_estimators: 25, 50, 70, 100\\ max\_features: sqrt, log2\\ max\_samples: 0.6, 0.7, 0.8, 0.9, None\\ min\_samples\_split: 2, 4, 8, 16, 32\\ max\_depth: 2, 4, 8, 16, 32, None\end{tabular} \\ \hline
+Extreme Gradient Boosting & Random & \begin{tabular}[c]{@{}l@{}}max\_depth: 2, 3, 4, 5, 6\\ n\_estimators: 100, 300, 500\\ reg\_alpha: np.linspace(1, 11, 20)\\ reg\_lambda: np.linspace(1, 11, 25)\\ base\_score: np.linspace(0.1, 0.6, 10)\\ subsample: np.arange(0.5, 1, 0.05)\\ learning\_rate: 0.1, 0.05\end{tabular} \\ \hline
+Naive-Bayes & - & \multicolumn{1}{c}{-} \\ \hline
+\end{tabular}
+\label{table:hyperparam}
+\caption{Algoritmos, estrategias de búsqueda y espacio de hiperparámetros}
+\end{table}
+
+Finalmente, a la hora de seleccionar las mejores combinaciones de modelos, la métrica de referencia que se busca maximizar en el entrenamiento y validación es la ROC AUC. Adicionalmente, por si es necesario comparar podemos con ROC AUC similares, también se calculan las métricas de Accuracy, Precision, Recall y F1. En el cuadro \ref{table:metrics} presenta las definiciones de todas las métricas de evaluación de modelos de clasificación.
+
+\begin{table}[htbp]
+\centering{}
+\begin{tabular}{l p{10cm}}
+\hline
+\textbf{Métrica} & \textbf{Descripción} \\ \hline
+Accuracy & Número de predicciones correctas sobre el número total de predicciones. \\ \hline
+Precission & Número de predicciones correctas de clase Attrition sobre el total de predicciones de Attrittion hechas (verdadero Attrition y falso Attrition) \\ \hline
+Recall & Número de predicciones de Attrition correctas sobre el total de casos de Attrition reales (predicciones correctas de Attrition y predicciones incorrectas de no Attrition) \\ \hline
+F1 & Media armónica de Precission y Recall. \\ \hline
+ROC AUC & Área bajo la curva ROC. La curva ROC mide el rendimiento de predicciones correctas de Attrition y las predicciones incorrectas de Attrition, y AUC es el área bajo dicha curva. Toma valores de 0,5 a 1, siendo 0,5 un clasificador aleatorio y 1 un clasificador perfecto \\ \hline
+\end{tabular}
+\caption{Definiciones de métricas de evaluación de modelos de clasificación}
+\label{table:metrics}
+\end{table}
