@@ -141,32 +141,37 @@ Las métricas de evaluación que se utilizan son Accuracy, Precision, Recall, F1
     \label{table:test}
 \end{table}
 
-El modelo de referencia de este estudio, el Logit, presenta una ROC AUC de 0,5959. Se considera que un valor inferior a 0,6 es un resultado malo, por lo que el modelo Logit no es un buen predictor. Con respecto a los otros modelos, observamos que el CART y el Naïve Bayes presentan valores más bajos que el Logit, de 0,5521 y 0,5798 respectivamente. El Random Forest y el XGBooster, en cambio, presentan valores de 0,5821 y 0,5911 respectivalente, que son ligeramente superiores al del modelo Logit.
-
-De estos resultados indican que los modelos de Random Forest y XGBooster mejoran al modelo Logit. Y entre estos dos, el Random Forest presenta valores un poco más altos en Accuracy y en Precision, y el XGBooster es mejor en Recall y F1. Pero es necesario recalcar que el valor de ROC AUC sigue estando por debajo de 0,6, por lo que, aunque se mejore el rendimiento con respecto al modelo Logit, los resultados de los test son malos.
+El modelo de referencia de este estudio, el Logit, presenta una ROC AUC de 0,5959. La del modelo CART es 0,5521, la del Random Forest es 0,5821, la del XGBooster es 0,5911, y la del Naive Bayes es 0,5798. Ninguno de estos valores mejora a la ROC AUC del modelo Logit. Los que se quedan más cerca son el Random Forest y el XGBooster. De todas maneras, es necesario recalcar que el valor más alto de ROC AUC, el del Logit, sigue estando por debajo de 0,6, por lo que resultados de los test son malos.
 
 \subsection*{¿Por qué el rendimiento de los modelos es malo?}
 
-Los resultados de la evaluación de los modelos con el conjunto de test indican que hay modelos de machine learning que mejoran en rendimiento de la predicción con respecto a un Logit. Sin embargo, la métrica ROC AUC obtenida por el mejor modelo, el XGBOOST, señala que el rendimiento de este modelo es malo. ¿Por qué los modelos no hacen bien la predicción?
+Los resultados de la evaluación de los modelos con el conjunto de test indican que hay modelos de machine learning, aunque se quedan cerca, no mejoran en rendimiento de la predicción con respecto a un Logit. Sin embargo, la métrica ROC AUC por el Logit indica que el rendimiento de este modelo es malo. ¿Por qué los modelos no hacen bien la predicción?
 
-Una posible causa puede ser el overfitting, es decir, que los modelos han aprendido demasiado de los datos con los que han sido entrenados y no son capaces de generalizar bien cuando se enfrentan a datos nuevos. Si esta fuese la principal razón, lo esperable sería que su rendimiento fuese bueno si se hace el ejercicio de predicción sobre los datos de entrenamiento. Los resultados del ejercicio de predicción sobre los datos de entrenamiento pueden verse en el cuadro \ref{table:train}.
+Una posible causa podría ser el overfitting, es decir, que los modelos han aprendido demasiado de los datos con los que han sido entrenados y no son capaces de generalizar bien cuando se enfrentan a datos nuevos. Si esta fuese la principal razón, lo esperable sería que su rendimiento fuese bueno si se hace el ejercicio de predicción sobre los datos de entrenamiento. En el cuadro \ref{table:train} se presenta una comparación entre las métricas de entrenamiento del ejercicio de predecir la Attrition con los datos de test y de entrenamiento (Train).
 
 \begin{table}[ht]
-    \centering
-    \begin{tabular}{lccccc}
-    \hline
-        \textbf{Modelo} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ROC AUC} \\ \hline
-        Logit & 0,6389 & 0,4905 & 0,4518 & 0,4704 & 0,6517 \\ 
-        CART & 0,6126 & 0,4594 & 0,5178 & 0,4868 & 0,6188 \\ 
-        Random Forest & 0,6596 & 0,5223 & 0,4770 & 0,4986 & 0,6726 \\ 
-        XGBooster & 0,6544 & 0,5144 & 0,4675 & 0,4898 & 0,6722 \\ 
-        Naive Bayes & 0,6251 & 0,4741 & 0,5178 & 0,4950 & 0,6435 \\ \hline
-    \end{tabular}
-    \caption{Métricas de evaluación de los modelos de predicción en el conjunto de entrenamiento}
-    \label{table:train}
+\centering
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Modelo} & \multicolumn{1}{l}{\textbf{Datos}} & \multicolumn{1}{l}{\textbf{Accuracy}} & \multicolumn{1}{l}{\textbf{Precision}} & \multicolumn{1}{l}{\textbf{Recall}} & \multicolumn{1}{l}{\textbf{F1}} & \multicolumn{1}{l}{\textbf{ROC AUC}} \\ \hline
+\multirow{2}{*}{Logit} & Test & 0,6556 & 0,3749 & 0,3573 & 0,3659 & 0,5959 \\
+ & Train & 0,6389 & 0,4905 & 0,4518 & 0,4704 & 0,6517 \\ \hline
+\multirow{2}{*}{CART} & Test & 0,6434 & 0,3338 & 0,2835 & 0,3066 & 0,5521 \\
+ & Train & 0,6126 & 0,4594 & 0,5178 & 0,4868 & 0,6188 \\ \hline
+\multirow{2}{*}{Random Forest} & Test & 0,6489 & 0,3529 & 0,3148 & 0,3328 & 0,5821 \\
+ & Train & 0,6596 & 0,5223 & 0,4770 & 0,4986 & 0,6726 \\ \hline
+\multirow{2}{*}{XGBooster} & Test & 0,6718 & 0,3772 & 0,2769 & 0,3194 & 0,5911 \\
+ & Train & 0,6544 & 0,5144 & 0,4675 & 0,4898 & 0,6722 \\ \hline
+\multirow{2}{*}{Naive Bayes} & Test & 0,6254 & 0,3504 & 0,4063 & 0,3763 & 0,5798 \\
+ & Train & 0,6251 & 0,4741 & 0,5178 & 0,4950 & 0,6435 \\ \hline
+\end{tabular}
+\caption{Comparación métricas evaluación entre conjuntos Test y Train}
+\label{table:train}
 \end{table}
 
-Como era de esperar, las métricas del rendimiento de las predicciones de todos los modelos sobre los datos de entrenamiento son mejores que los obtenidos en el ejercicio de test. En este caso, el modelo que presenta mejor rendimiento es el Random Forest, con una métrica de ROC AUC de 0,6726, ligeramente superior a la del XGBooster. El resto de métricas del Ranfom Forest también son ligeramente mejores que las del XGBooster. Sin embargo, esta métrica de ROC AUC está entre 0,6 y 0,75, que lo clasifica como un predictor regular. Este resultado descarta que el overfitting para explicar el mal rendimiento de los modelos, e invita a considerar otras alternativas e incluso nuevos enfoques. Estas opciones se comentan con más detalle en el capítulo \ref{chapter:conclusiones}.
+En esta tabla hay dos tipos de resultados. En primer lugar, se observa que los resultados del test decaen puntos con respecto al conjunto de entrenamiento. Esta degradación es esperable, ya que los algoritmos han sido entrenados con el conjunto de entrenamiento y conocen los patrones internos de los datos mejor que los del conjunto de testo. La caída del entrenamiento al test es baja cuando se compara la métrica de accuracy, pero la caída es más grande para el resto de métricas. Por ejemplo, la ROC AUC del Random Forest cae de 0,6726 para el conjunto de entrenamiento a 0,5821 para el conjunto de test, y la del Logit cae de 0,6517 para el entremaniento a 0,5959 para el test.
+
+El segundo tipo de resultados se centra en la comparación del rendimiento entre los modelos para el conjunto de entrenamiento. En este caso la ROC AUC de todos los modelos sí supera el valor de 0,6, y también se observa que la de dos de los modelos, el Random Forest y XGBooster, que son 0,6726 y 0,6722 respectivamente, sí son más altas que la ROC AUC del modelo Logit, que es 0,6517. Del resto de métricas, sólo el recall del XGBooster presenta un valor más bajo que el del modelo Logit. De los dos modelos, el mejor sería el Random Forest porque presenta mejores valores en todas las métricas. Sin embargo, aunque este valor sí esté por encima de 0,6, al estar por debajo de 0,75 a este modelo se le clasifica como un predictor regular. Este resultado descarta el overfitting para explicar el mal rendimiento de los modelos, e invita a considerar otras alternativas e incluso nuevos enfoques. Estas opciones se comentan con más detalle en el capítulo \ref{chapter:conclusiones}.
 
 \subsection*{Importancia de las variables en la predicción}
 
